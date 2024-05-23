@@ -2,7 +2,6 @@ import streamlit as st
 import geopandas as gpd
 import folium
 import altair as alt
-import matplotlib.pyplot as plt
 from streamlit_folium import folium_static
 from folium.features import GeoJsonTooltip
 
