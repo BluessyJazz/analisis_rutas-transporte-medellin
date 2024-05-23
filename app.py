@@ -17,13 +17,20 @@ def load_geo_data(filepath):
     return data
 
 # Función para mostrar el mapa
-def show_map(gdf, filter_column=None, filter_value=None):
+def show_map(gdf, filter_column=None, filter_value=None, zoom=False):
     # Filtrar los datos si se proporciona un filtro
     if filter_column and filter_value:
         gdf = gdf[gdf[filter_column] == filter_value]
 
-    # Crear un mapa centrado en Medellín
-    m = folium.Map(location=[6.2442, -75.5812], zoom_start=12)
+    # Obtener el centro del mapa
+    if not gdf.empty:
+        center = gdf.geometry.centroid.iloc[0].coords[0][::-1]  # Invertir (lon, lat) a (lat, lon)
+    else:
+        center = [6.2442, -75.5812]  # Coordenadas de Medellín
+
+    # Crear un mapa centrado
+    zoom_start = 14 if zoom else 12
+    m = folium.Map(location=center, zoom_start=zoom_start)
 
     # Agregar las rutas al mapa
     for _, row in gdf.iterrows():
@@ -72,15 +79,9 @@ def main():
         st.write("Columnas disponibles en el dataset:", list(gdf.columns))
         return
 
-    # Mostrar el mapa inicial
-    show_map(gdf.copy())
-
     # Filtrar rutas por empresa
     empresas = gdf['empresa'].unique()
     empresa_seleccionada = st.selectbox("Selecciona una empresa", empresas)
-
-    # Mostrar el mapa filtrado por empresa
-    show_map(gdf.copy(), filter_column='empresa', filter_value=empresa_seleccionada)
 
     # Seleccionar una ruta para mostrar información detallada
     rutas = gdf[gdf['empresa'] == empresa_seleccionada]['nombre'].unique()
@@ -88,6 +89,9 @@ def main():
 
     # Mostrar información detallada de la ruta seleccionada
     show_route_info(gdf.copy(), ruta_seleccionada)
+
+    # Mostrar el mapa con la ruta seleccionada
+    show_map(gdf.copy(), filter_column='nombre', filter_value=ruta_seleccionada, zoom=True)
 
 if __name__ == "__main__":
     main()
